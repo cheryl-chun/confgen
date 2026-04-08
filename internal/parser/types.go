@@ -13,6 +13,14 @@ const (
 	TypeNull
 )
 
+func (t ValueType) String() string {
+	names := []string{"String", "Int", "Float", "Bool", "Array", "Object", "Null"}
+	if t >= 0 && int(t) < len(names) {
+		return names[t]
+	}
+	return "Unknown"
+}
+
 // ConfigValue represents the intermediate representation of a configuration value
 // Supports basic types, nested objects, and arrays
 type ConfigValue struct {

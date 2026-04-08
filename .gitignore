@@ -32,3 +32,7 @@ Thumbs.db
 
 # Dependencies
 vendor/
+
+# vibe coding
+.claude/
+examples/
