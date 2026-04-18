@@ -46,6 +46,18 @@ func (l *Loader) AddEnv(prefix string) *Loader {
 	return l
 }
 
+// AddRemoteSource 添加通用远程配置源
+func (l *Loader) AddRemoteSource(source Source) *Loader {
+	l.AddSource(source)
+	return l
+}
+
+// AddEtcd 添加 etcd 配置源，支持 key 前缀
+func (l *Loader) AddEtcd(endpoints []string, prefix string) *Loader {
+	l.AddSource(NewEtcdSource(endpoints, prefix))
+	return l
+}
+
 // Fill 填充配置到目标 struct
 //
 // 流程:

@@ -1,0 +1,29 @@
+app:
+  name: "benchmark-app"
+  version: "1.0.0"
+  log_level: "info"
+
+server:
+  host: "localhost"
+  port: 8080
+  timeout_ms: 30000
+  ssl_enabled: true
+
+database:
+  driver: "postgres"
+  host: "db.local"
+  port: 5432
+  user: "appuser"
+  password: "secret123"
+  dbname: "appdb"
+  pool_size: 100
+
+cache:
+  redis_host: "redis.local"
+  redis_port: 6379
+  ttl_seconds: 3600
+
+features:
+  enable_metrics: true
+  enable_tracing: true
+  rate_limit_rps: 10000

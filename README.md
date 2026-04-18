@@ -4,11 +4,11 @@ A powerful code generator that creates type-safe Go configuration structs from Y
 
 ## Features
 
-- 🚀 **Auto-generate** strongly-typed config structs from YAML/JSON
-- 🌲 **Trie-based runtime** for efficient configuration queries (faster than Viper's nested maps)
-- 📦 **Multi-source support**: File and Environment Variables (remote sources planned)
-- 👀 **Watch callbacks** on config path changes
-- 🛠️ **Two usage modes**: CLI tool or `go generate`
+- **Auto-generate** strongly-typed config structs from YAML/JSON
+- **Trie-based runtime** for efficient configuration queries (faster than Viper's nested maps)
+- **Multi-source support**: File and Environment Variables (remote sources planned)
+- **Watch callbacks** on config path changes
+- **Two usage modes**: CLI tool or `go generate`
 
 ## Installation
 
