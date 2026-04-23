@@ -6,7 +6,6 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
-	go.etcd.io/etcd/client/v3 v3.7.0
 )
 
 require (

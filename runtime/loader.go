@@ -13,7 +13,6 @@ type Loader struct {
 	sources []Source
 }
 
-// Source 配置源接口
 type Source interface {
 	// Load 加载配置到 ConfigTree
 	Load(tree *tree.ConfigTree) error
@@ -21,7 +20,6 @@ type Source interface {
 	Priority() tree.SourceType
 }
 
-// NewLoader 创建加载器
 func NewLoader() *Loader {
 	return &Loader{
 		tree:    tree.NewConfigTree(),
@@ -29,34 +27,30 @@ func NewLoader() *Loader {
 	}
 }
 
-// AddSource 添加配置源
 func (l *Loader) AddSource(source Source) {
 	l.sources = append(l.sources, source)
 }
 
-// AddFile 添加文件配置源
 func (l *Loader) AddFile(path string) *Loader {
 	l.AddSource(&FileSource{Path: path})
 	return l
 }
 
-// AddEnv 添加环境变量配置源
 func (l *Loader) AddEnv(prefix string) *Loader {
 	l.AddSource(&EnvSource{Prefix: prefix})
 	return l
 }
 
-// AddRemoteSource 添加通用远程配置源
 func (l *Loader) AddRemoteSource(source Source) *Loader {
 	l.AddSource(source)
 	return l
 }
 
-// AddEtcd 添加 etcd 配置源，支持 key 前缀
-func (l *Loader) AddEtcd(endpoints []string, prefix string) *Loader {
-	l.AddSource(NewEtcdSource(endpoints, prefix))
-	return l
-}
+// TODO: AddEtcd 添加 etcd 配置源，支持 key 前缀
+// func (l *Loader) AddEtcd(endpoints []string, prefix string) *Loader {
+// 	l.AddSource(NewEtcdSource(endpoints, prefix))
+// 	return l
+// }
 
 // Fill 填充配置到目标 struct
 //
