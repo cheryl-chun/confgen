@@ -5,8 +5,9 @@ import (
 	"unicode"
 )
 
-// ToStructName 将配置键转换为 Go struct 名称 (PascalCase + "Config" 后缀)
-// 例如: "database" -> "DatabaseConfig", "max_connections" -> "MaxConnectionsConfig"
+// ToStructName transforms a configuration key into a valid Go struct identifier 
+// by applying PascalCase and appending a "Config" suffix.
+// Example: "database" -> "DatabaseConfig", "max_connections" -> "MaxConnectionsConfig".
 func ToStructName(key string) string {
 	if key == "" || key == "root" {
 		return "Config"
@@ -14,20 +15,21 @@ func ToStructName(key string) string {
 	return ToPascalCase(key) + "Config"
 }
 
-// ToFieldName 将配置键转换为 Go 字段名 (PascalCase)
-// 例如: "max_connections" -> "MaxConnections", "api_key" -> "ApiKey"
+// ToFieldName converts a configuration key into an exported Go field name 
+// using PascalCase to ensure visibility outside the package.
+// Example: "max_connections" -> "MaxConnections", "api_key" -> "ApiKey".
 func ToFieldName(key string) string {
 	return ToPascalCase(key)
 }
 
-// ToPascalCase 转换为 PascalCase
-// 支持: snake_case, kebab-case, camelCase
+// ToPascalCase normalizes various naming conventions (snake_case, kebab-case, camelCase) 
+// into a standardized PascalCase format.
 func ToPascalCase(s string) string {
 	if s == "" {
 		return ""
 	}
 
-	// 分割字符串（按 '_', '-', 或驼峰边界）
+	// Tokenize the string into discrete words based on delimiters or casing boundaries.
 	words := splitWords(s)
 
 	var result strings.Builder
@@ -35,27 +37,28 @@ func ToPascalCase(s string) string {
 		if word == "" {
 			continue
 		}
-		// 首字母大写，其余小写
+		// Apply casing transformations while respecting Go initialism conventions.
 		result.WriteString(capitalize(word))
 	}
 
 	return result.String()
 }
 
-// splitWords 将字符串分割为单词
+// splitWords parses the input string into a slice of tokens by identifying 
+// delimiters ('_', '-', ' ') and detecting transitions in camelCase.
 func splitWords(s string) []string {
 	var words []string
 	var currentWord strings.Builder
 
 	for i, r := range s {
 		if r == '_' || r == '-' || r == ' ' {
-			// 分隔符
+			// Trigger word boundary on explicit delimiters.
 			if currentWord.Len() > 0 {
 				words = append(words, currentWord.String())
 				currentWord.Reset()
 			}
 		} else if i > 0 && unicode.IsUpper(r) && unicode.IsLower(rune(s[i-1])) {
-			// 驼峰边界: camelCase -> [camel, Case]
+			// Trigger word boundary on camelCase transitions (e.g., camelCase -> [camel, Case]).
 			if currentWord.Len() > 0 {
 				words = append(words, currentWord.String())
 				currentWord.Reset()
@@ -73,13 +76,15 @@ func splitWords(s string) []string {
 	return words
 }
 
-// capitalize 首字母大写，其余小写
+// capitalize applies title casing to a single token. It prioritizes 
+// industry-standard initialisms (e.g., "url" -> "URL") to align with 
+// Go's static analysis recommendations (golint).
 func capitalize(s string) string {
 	if s == "" {
 		return ""
 	}
 
-	// 特殊缩写词保持全大写 (可根据需要扩展)
+	// Check for common technical acronyms that should remain fully uppercase.
 	upper := strings.ToUpper(s)
 	if isCommonAcronym(upper) {
 		return upper
@@ -93,28 +98,29 @@ func capitalize(s string) string {
 	return string(runes)
 }
 
-// isCommonAcronym 判断是否为常见缩写词
+// isCommonAcronym validates if a token is a recognized initialism. 
+// This follows the Go community's best practices for identifier naming.
 func isCommonAcronym(s string) bool {
 	acronyms := map[string]bool{
-		"ID":   true,
-		"API":  true,
-		"URL":  true,
-		"URI":  true,
-		"HTTP": true,
+		"ID":    true,
+		"API":   true,
+		"URL":   true,
+		"URI":   true,
+		"HTTP":  true,
 		"HTTPS": true,
-		"JSON": true,
-		"XML":  true,
-		"HTML": true,
-		"SQL":  true,
-		"DB":   true,
-		"TCP":  true,
-		"UDP":  true,
-		"IP":   true,
-		"TLS":  true,
-		"SSL":  true,
-		"CPU":  true,
-		"RAM":  true,
-		"UUID": true,
+		"JSON":  true,
+		"XML":   true,
+		"HTML":  true,
+		"SQL":   true,
+		"DB":    true,
+		"TCP":   true,
+		"UDP":   true,
+		"IP":    true,
+		"TLS":   true,
+		"SSL":   true,
+		"CPU":   true,
+		"RAM":   true,
+		"UUID":  true,
 	}
 	return acronyms[s]
 }

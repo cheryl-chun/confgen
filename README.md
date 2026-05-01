@@ -18,7 +18,7 @@ go install github.com/cheryl-chun/confgen/cmd/confg@latest
 
 ## Usage
 
-### Method 1: Direct CLI Usage
+### Direct CLI Usage
 
 ```bash
 # Generate from YAML
@@ -34,7 +34,7 @@ confg --path=config.yaml --out=config.go --watch
 confg --path=config.yaml --dry-run
 ```
 
-### Method 2: Using `go generate`
+###  Using go generate
 
 Add this comment to any `.go` file in your package:
 

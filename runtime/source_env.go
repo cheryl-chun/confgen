@@ -7,14 +7,19 @@ import (
 	"github.com/cheryl-chun/confgen/internal/tree"
 )
 
-// EnvSource 环境变量配置源
+// EnvSource implements the Source interface for loading configuration parameters 
+// from the operating system's environment variables.
 type EnvSource struct {
-	Prefix string // 环境变量前缀，如 "APP_"
+	// Prefix defines an optional namespace (e.g., "APP_") to filter 
+	// and isolate relevant environment variables.
+	Prefix string 
 }
 
-// Load 实现 Source 接口
+// Load iterates through the process environment block and merges matching 
+// variables into the provided ConfigTree. It handles prefix stripping and 
+// path normalization automatically.
 func (s *EnvSource) Load(configTree *tree.ConfigTree) error {
-	// 遍历所有环境变量
+	// Retrieve the full environment block as a slice of "KEY=VALUE" strings.
 	for _, env := range os.Environ() {
 		parts := strings.SplitN(env, "=", 2)
 		if len(parts) != 2 {
@@ -24,36 +29,39 @@ func (s *EnvSource) Load(configTree *tree.ConfigTree) error {
 		key := parts[0]
 		value := parts[1]
 
-		// 检查前缀
+		// Filter variables that do not match the specified namespace prefix.
 		if s.Prefix != "" && !strings.HasPrefix(key, s.Prefix) {
 			continue
 		}
 
-		// 移除前缀
+		// Strip the namespace prefix to obtain the raw configuration key.
 		if s.Prefix != "" {
 			key = strings.TrimPrefix(key, s.Prefix)
 		}
 
-		// 转换环境变量名为配置路径
-		// APP_SERVER_HOST -> server.host
+		// Transform the uppercase underscore-delimited environment key 
+		// into a lowercase dot-delimited configuration path.
+		// e.g., "SERVER_HOST" -> "server.host"
 		path := s.envKeyToPath(key)
 
-		// 设置到 tree（环境变量优先级高）
+		// Persist the value to the tree with System Environment precedence.
+		// Note: All environment variables are treated as strings during initial ingestion.
 		configTree.Set(path, value, tree.SourceSystemEnv, tree.TypeString)
 	}
 
 	return nil
 }
 
-// Priority 返回环境变量配置源的优先级
+// Priority returns the precedence level assigned to environment-sourced configuration.
 func (s *EnvSource) Priority() tree.SourceType {
 	return tree.SourceSystemEnv
 }
 
-// envKeyToPath 将环境变量名转换为配置路径
-// APP_SERVER_HOST -> server.host
+// envKeyToPath converts an environment variable identifier into a hierarchical 
+// configuration path using lowercase normalization and delimiter replacement.
+// Transformation Example: "SERVER_HOST" -> "server.host"
 func (s *EnvSource) envKeyToPath(key string) string {
-	// 转小写并替换 _ 为 .
+	// Normalize to lowercase and replace underscores with dot separators.
 	key = strings.ToLower(key)
 	key = strings.ReplaceAll(key, "_", ".")
 	return key

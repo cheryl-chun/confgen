@@ -8,6 +8,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// YAMLParser implements the Parser interface for processing YAML-formatted
+// configuration specifications into a unified node-based tree structure.
 type YAMLParser struct {
 	*BaseParser
 }
@@ -20,7 +22,9 @@ func NewYAMLParser() *YAMLParser {
 	}
 }
 
-// Parse parse YAML from io.Reader
+// Parse consumes a byte stream from an io.Reader, decodes the YAML content,
+// and triggers the recursive tree-building process.
+// It returns a ParseResult containing the normalized tree and raw interface data.
 func (p *YAMLParser) Parse(reader io.Reader) (*ParseResult, error) {
 	decoder := yaml.NewDecoder(reader)
 
@@ -37,7 +41,8 @@ func (p *YAMLParser) Parse(reader io.Reader) (*ParseResult, error) {
 	}, nil
 }
 
-// ParseFile parse YAML from file
+// ParseFile is a convenience wrapper around Parse that handles filesystem I/O.
+// It ensures proper resource management by opening and closing the target file.
 func (p *YAMLParser) ParseFile(path string) (*ParseResult, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -48,13 +53,16 @@ func (p *YAMLParser) ParseFile(path string) (*ParseResult, error) {
 	return p.Parse(file)
 }
 
-// buildConfigTree 递归构建配置树
+// buildConfigTree recursively constructs a hierarchical configuration tree
+// by performing type-assertion-driven normalization on the input value.
+// It maps heterogeneous YAML structures (maps, slices, primitives) into a
+// strongly-typed ConfigNode representation.
 func buildConfigTree(key string, value interface{}) *ConfigNode {
 	node := NewConfigNode(key)
 
 	switch v := value.(type) {
 	case map[string]interface{}:
-		// 对象类型
+		// Complex Type: Object/Map mapping.
 		node.Type = TypeObject
 		node.Value = v
 		for k, val := range v {
@@ -63,7 +71,6 @@ func buildConfigTree(key string, value interface{}) *ConfigNode {
 		}
 
 	case []interface{}:
-		// 数组类型
 		node.Type = TypeArray
 		node.Value = v
 		for i, item := range v {
@@ -92,7 +99,6 @@ func buildConfigTree(key string, value interface{}) *ConfigNode {
 		node.Value = nil
 
 	default:
-		// 未知类型，尝试转换为字符串
 		node.Type = TypeString
 		node.Value = fmt.Sprint(v)
 	}

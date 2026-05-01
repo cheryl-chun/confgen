@@ -30,7 +30,6 @@ enabled: true
 		t.Errorf("Expected 3 fields, got %d", len(result.Root.Children))
 	}
 
-	// 验证字段
 	if name := result.Root.Children["name"]; name == nil {
 		t.Error("name field not found")
 	} else if name.Value != "myapp" {
@@ -193,7 +192,6 @@ database:
 		t.Fatalf("Parse failed: %v", err)
 	}
 
-	// 验证 server.features 数组
 	server := result.Root.Children["server"]
 	if server == nil {
 		t.Fatal("server not found")
@@ -208,7 +206,6 @@ database:
 		t.Error("server.features should be an array")
 	}
 
-	// 验证 database.connections 数组中的对象
 	database := result.Root.Children["database"]
 	if database == nil {
 		t.Fatal("database not found")

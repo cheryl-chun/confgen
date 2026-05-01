@@ -2,25 +2,31 @@ package analyzer
 
 import "testing"
 
+// TestToPascalCase verifies the transformation logic from various string formats 
+// (snake_case, kebab-case, camelCase) to PascalCase.
+// It specifically validates compliance with Go's official initialism guidelines 
+// (e.g., converting "api" to "API" instead of "Api").
 func TestToPascalCase(t *testing.T) {
+	// Define a suite of test cases covering standard scenarios and edge cases.
 	tests := []struct {
 		input    string
 		expected string
 	}{
 		{"max_connections", "MaxConnections"},
-		{"api_key", "APIKey"},          // Go 规范: 缩写词全大写
+		{"api_key", "APIKey"},         // Compliance check: API should be fully capitalized.
 		{"server-port", "ServerPort"},
 		{"camelCase", "CamelCase"},
 		{"snake_case_name", "SnakeCaseName"},
 		{"simple", "Simple"},
-		{"", ""},
-		{"db_host", "DBHost"},          // Go 规范: DB 全大写
-		{"api_url", "APIURL"},          // Go 规范: API 和 URL 全大写
-		{"id", "ID"},                   // Go 规范: ID 全大写
-		{"user_id", "UserID"},          // Go 规范: ID 全大写
+		{"", ""},                      // Edge case: empty input.
+		{"db_host", "DBHost"},         // Compliance check: DB should be fully capitalized.
+		{"api_url", "APIURL"},         // Multi-acronym check: Both API and URL should be capitalized.
+		{"id", "ID"},                  // Singular acronym check.
+		{"user_id", "UserID"},         // Common suffix acronym check.
 	}
 
 	for _, tt := range tests {
+		// Utilize subtests for granular failure reporting and isolated execution.
 		t.Run(tt.input, func(t *testing.T) {
 			result := ToPascalCase(tt.input)
 			if result != tt.expected {
@@ -30,6 +36,8 @@ func TestToPascalCase(t *testing.T) {
 	}
 }
 
+// TestToStructName ensures that configuration keys are correctly mapped to 
+// struct identifiers with the appropriate "Config" suffix.
 func TestToStructName(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -38,8 +46,8 @@ func TestToStructName(t *testing.T) {
 		{"server", "ServerConfig"},
 		{"database", "DatabaseConfig"},
 		{"max_connections", "MaxConnectionsConfig"},
-		{"root", "Config"},
-		{"", "Config"},
+		{"root", "Config"},            // Special case: 'root' should map to the primary 'Config' struct.
+		{"", "Config"},                // Fallback: empty keys default to 'Config'.
 	}
 
 	for _, tt := range tests {
@@ -52,6 +60,8 @@ func TestToStructName(t *testing.T) {
 	}
 }
 
+// TestToFieldName validates the generation of exported Go field names.
+// It ensures that fields are properly capitalized to maintain package-level visibility.
 func TestToFieldName(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -60,7 +70,7 @@ func TestToFieldName(t *testing.T) {
 		{"max_connections", "MaxConnections"},
 		{"host", "Host"},
 		{"port", "Port"},
-		{"api_key", "APIKey"}, // Go 规范: API 全大写
+		{"api_key", "APIKey"},         // Ensuring acronyms are respected in field naming.
 	}
 
 	for _, tt := range tests {

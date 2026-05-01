@@ -7,7 +7,9 @@ import (
 	"github.com/cheryl-chun/confgen/internal/analyzer"
 )
 
-// singletonTemplate 单例模式代码模板
+// singletonTemplate defines the boilerplate for thread-safe singleton management.
+// It implements the 'sync.Once' pattern to ensure idempotent initialization 
+// and provides a functional options API for flexible runtime configuration.
 const singletonTemplate = `
 import (
 	"sync"
@@ -20,46 +22,48 @@ var (
 	once     sync.Once
 )
 
-// Load 加载配置（单例模式，只会执行一次）
+// Load initializes the global configuration singleton. It is thread-safe and 
+// guaranteed to execute only once. Subsequent calls will not re-trigger loading.
 //
-// 示例:
-//   config.Load("config.yaml")
-//   config.Load("config.yaml", config.WithEnv("APP_"))
+// Example:
+//    config.Load("config.yaml")
+//    config.Load("config.yaml", config.WithEnv("APP_"))
 func Load(path string, opts ...Option) error {
 	var err error
 	once.Do(func() {
 		loader := runtime.NewLoader()
 		loader.AddFile(path)
 
-		// 应用选项
+		// Apply functional options to customize the loader's behavior.
 		for _, opt := range opts {
 			opt.Apply(loader)
 		}
 
 		instance = &{{.RootStructName}}{}
+		// Populate the struct fields using the runtime loader.
 		err = loader.Fill(instance)
 	})
 	return err
 }
 
-// Get 获取配置单例
-//
-// 必须先调用 Load() 初始化配置，否则会 panic
+// Get retrieves the initialized configuration singleton. 
+// It triggers a panic if invoked before a successful call to Load().
 func Get() *{{.RootStructName}} {
 	if instance == nil {
-		panic("config not loaded, call Load() first")
+		panic("config not loaded: ensure Load() is called during application bootstrap")
 	}
 	return instance
 }
 
-// MustLoad 加载配置，失败时 panic
+// MustLoad performs a mandatory configuration load and panics upon failure.
+// Ideal for strict application startup sequences.
 func MustLoad(path string, opts ...Option) {
 	if err := Load(path, opts...); err != nil {
 		panic(err)
 	}
 }
 
-// Option 配置选项
+// Option defines the interface for functional configuration of the runtime loader.
 type Option interface {
 	Apply(*runtime.Loader)
 }
@@ -70,9 +74,8 @@ func (f optionFunc) Apply(l *runtime.Loader) {
 	f(l)
 }
 
-// WithEnv 添加环境变量配置源
-//
-// 示例: WithEnv("APP_") 会将 APP_SERVER_HOST 映射到 server.host
+// WithEnv returns an Option that configures the loader to bind environment variables.
+// Example: WithEnv("APP_") maps "APP_SERVER_PORT" to "server.port".
 func WithEnv(prefix string) Option {
 	return optionFunc(func(l *runtime.Loader) {
 		l.AddEnv(prefix)
@@ -80,9 +83,11 @@ func WithEnv(prefix string) Option {
 }
 `
 
-// dynamicMethodsTemplate 动态查询方法模板
+// dynamicMethodsTemplate provides type-safe accessors and dynamic schema traversal 
+// capabilities by delegating calls to the underlying runtime tree.
 const dynamicMethodsTemplate = `
-// Set 动态设置配置值（自动推断值类型）
+// Set updates the value at the specified hierarchical path with automated 
+// type inference and source tracking.
 func (c *{{.RootStructName}}) Set(path string, value interface{}, source runtime.SourceType) error {
 	if c.ConfigTree == nil {
 		return nil
@@ -90,7 +95,8 @@ func (c *{{.RootStructName}}) Set(path string, value interface{}, source runtime
 	return c.ConfigTree.Set(path, value, source)
 }
 
-// Watch 监听指定 path 的值变化
+// Watch registers a reactive callback to monitor value transitions at the given path.
+// It returns a cancel function to stop the observer.
 func (c *{{.RootStructName}}) Watch(path string, callback runtime.WatchCallback) func() {
 	if c.ConfigTree == nil {
 		return func() {}
@@ -98,9 +104,7 @@ func (c *{{.RootStructName}}) Watch(path string, callback runtime.WatchCallback)
 	return c.ConfigTree.Watch(path, callback)
 }
 
-// GetString 动态查询字符串值
-//
-// 示例: cfg.GetString("server.host")
+// GetString performs a dynamic query for a string-typed value at the given path.
 func (c *{{.RootStructName}}) GetString(path string) string {
 	if c.ConfigTree == nil {
 		return ""
@@ -108,7 +112,7 @@ func (c *{{.RootStructName}}) GetString(path string) string {
 	return c.ConfigTree.GetString(path)
 }
 
-// GetInt 动态查询整数值
+// GetInt performs a dynamic query for an integer-typed value at the given path.
 func (c *{{.RootStructName}}) GetInt(path string) int {
 	if c.ConfigTree == nil {
 		return 0
@@ -116,7 +120,7 @@ func (c *{{.RootStructName}}) GetInt(path string) int {
 	return c.ConfigTree.GetInt(path)
 }
 
-// GetBool 动态查询布尔值
+// GetBool performs a dynamic query for a boolean-typed value at the given path.
 func (c *{{.RootStructName}}) GetBool(path string) bool {
 	if c.ConfigTree == nil {
 		return false
@@ -124,7 +128,7 @@ func (c *{{.RootStructName}}) GetBool(path string) bool {
 	return c.ConfigTree.GetBool(path)
 }
 
-// GetFloat 动态查询浮点数值
+// GetFloat performs a dynamic query for a floating-point value at the given path.
 func (c *{{.RootStructName}}) GetFloat(path string) float64 {
 	if c.ConfigTree == nil {
 		return 0
@@ -132,7 +136,7 @@ func (c *{{.RootStructName}}) GetFloat(path string) float64 {
 	return c.ConfigTree.GetFloat(path)
 }
 
-// Get 动态查询配置值（返回 interface{}）
+// Get retrieves the raw interface representation of the value at the specified path.
 func (c *{{.RootStructName}}) Get(path string) interface{} {
 	if c.ConfigTree == nil {
 		return nil
@@ -141,7 +145,8 @@ func (c *{{.RootStructName}}) Get(path string) interface{} {
 }
 `
 
-// generateSingletonCodeWithTemplate 使用模板生成单例代码
+// generateSingletonCodeWithTemplate renders the thread-safe initialization 
+// logic by executing the singleton template with the inferred root metadata.
 func (g *Generator) generateSingletonCodeWithTemplate(result *analyzer.AnalyzeResult) (string, error) {
 	tmpl, err := template.New("singleton").Parse(singletonTemplate)
 	if err != nil {
@@ -162,7 +167,8 @@ func (g *Generator) generateSingletonCodeWithTemplate(result *analyzer.AnalyzeRe
 	return buf.String(), nil
 }
 
-// generateDynamicMethodsWithTemplate 使用模板生成动态方法
+// generateDynamicMethodsWithTemplate renders type-safe dynamic accessors 
+// by executing the method template with the inferred root metadata.
 func (g *Generator) generateDynamicMethodsWithTemplate(result *analyzer.AnalyzeResult) (string, error) {
 	tmpl, err := template.New("methods").Parse(dynamicMethodsTemplate)
 	if err != nil {

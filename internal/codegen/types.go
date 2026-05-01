@@ -1,12 +1,10 @@
 package codegen
 
-// Options 代码生成选项
 type Options struct {
-	PackageName string // 包名
-	AddComments bool   // 是否添加字段注释
+	PackageName string 
+	AddComments bool   
 }
 
-// DefaultOptions 返回默认选项
 func DefaultOptions() Options {
 	return Options{
 		PackageName: "main",

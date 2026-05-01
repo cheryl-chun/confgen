@@ -45,7 +45,6 @@ func (f *ParserFactory) Register(parser Parser) {
 	defer f.mu.Unlock()
 
 	for _, ext := range parser.SupportedExtensions() {
-		// 统一为小写，去掉可能的 . 前缀
 		ext = strings.ToLower(strings.TrimPrefix(ext, "."))
 		f.parsers[ext] = parser
 	}

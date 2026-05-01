@@ -8,7 +8,6 @@ import (
 )
 
 func TestGenerateSimpleStruct(t *testing.T) {
-	// 构建测试用的 AnalyzeResult
 	result := &analyzer.AnalyzeResult{
 		RootStruct: &analyzer.StructDef{
 			Name: "Config",
@@ -32,7 +31,6 @@ func TestGenerateSimpleStruct(t *testing.T) {
 		SubStructs: make(map[string]*analyzer.StructDef),
 	}
 
-	// 生成代码
 	opts := Options{
 		PackageName: "main",
 		AddComments: false,
@@ -43,7 +41,6 @@ func TestGenerateSimpleStruct(t *testing.T) {
 		t.Fatalf("Generate failed: %v", err)
 	}
 
-	// 验证生成的代码
 	t.Log("Generated code:")
 	t.Log(code)
 
@@ -58,7 +55,6 @@ func TestGenerateSimpleStruct(t *testing.T) {
 }
 
 func TestGenerateNestedStruct(t *testing.T) {
-	// 构建嵌套结构
 	result := &analyzer.AnalyzeResult{
 		RootStruct: &analyzer.StructDef{
 			Name: "Config",
@@ -104,7 +100,6 @@ func TestGenerateNestedStruct(t *testing.T) {
 	t.Log("Generated code:")
 	t.Log(code)
 
-	// 验证
 	mustContain(t, code, "type Config struct")
 	mustContain(t, code, "type ServerConfig struct")
 	mustContain(t, code, "Server")
@@ -157,7 +152,6 @@ func TestGenerateArrayTypes(t *testing.T) {
 	t.Log("Generated code:")
 	t.Log(code)
 
-	// 验证数组类型
 	mustContain(t, code, "[]string")
 	mustContain(t, code, "[]ServerConfig")
 }
@@ -193,12 +187,10 @@ func TestGenerateWithComments(t *testing.T) {
 	t.Log("Generated code:")
 	t.Log(code)
 
-	// 验证注释
 	mustContain(t, code, "package config")
 	mustContain(t, code, "// Server hostname")
 }
 
-// mustContain 验证字符串包含指定内容
 func mustContain(t *testing.T, s, substr string) {
 	t.Helper()
 	if !strings.Contains(s, substr) {

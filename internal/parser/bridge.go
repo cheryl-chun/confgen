@@ -34,7 +34,6 @@ func ParseToTree(path string, source tree.SourceType) (*tree.ConfigTree, error) 
 	configTree := tree.NewConfigTree()
 
 	// Step 3: Convert parser.ConfigNode to tree.ConfigTree
-	// This is where the magic happens!
 	convertToTree(configTree, "", result.Root, source)
 
 	return configTree, nil

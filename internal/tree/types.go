@@ -1,5 +1,7 @@
 package tree
 
+// ValueType represents the underlying data type of a configuration node, 
+// ensuring type safety during structural parsing and schema inference.
 type ValueType int
 
 const (
@@ -12,45 +14,47 @@ const (
 	TypeNull
 )
 
-// SourceType 配置来源类型
+// SourceType identifies the origin of a configuration value. 
+// It is used by the merging engine to resolve conflicts between multiple config sources.
 type SourceType int
 
 const (
-	SourceDefault      SourceType = iota // Default value
-	SourceRemote                         // Remote configuration center (etcd/zookeeper/consul, etc.)
-	SourceFile                           // Configuration file (yaml/json/toml, etc.)
-	SourceRuntimeOverride                // Runtime dynamic override (via API, etc.)
-	SourceSessionEnv                     // Session environment variable (current process)
-	SourceSystemEnv                      // System environment variable (global persistent)
-	SourceCodeOverride                   // Code explicit override (Set method)
+	// SourceDefault represents hardcoded fallback values within the application.
+	SourceDefault       SourceType = iota
+	// SourceRemote identifies values from external configuration providers (e.g., Etcd, Consul).
+	SourceRemote
+	// SourceFile identifies values loaded from local persistent storage (YAML, JSON, TOML).
+	SourceFile
+	// SourceRuntimeOverride represents dynamic changes applied via runtime APIs.
+	SourceRuntimeOverride
+	// SourceSessionEnv represents transient environment variables specific to the current process.
+	SourceSessionEnv
+	// SourceSystemEnv represents persistent, system-wide environment variables.
+	SourceSystemEnv
+	// SourceCodeOverride represents explicit programmatic assignments (the highest priority).
+	SourceCodeOverride
 )
 
-// SourcePriority 配置源的优先级（数字越大优先级越高）
+// SourcePriority defines the precedence hierarchy for configuration resolution. 
+// A higher integer value indicates a stronger precedence.
 //
-// 优先级设计原则（按你的建议）：
-// 1. 系统环境变量 > 会话环境变量：持久配置 > 临时配置
-// 2. 环境变量 > 配置文件：符合 12-Factor App，便于运维
-// 3. 配置文件 > 远程配置：本地优先，便于开发调试
-// 4. 远程配置 > 默认值：动态配置 > 硬编码
-//
-// 特殊说明：
-// - CodeOverride：代码中显式 Set()，优先级最高（程序员明确意图）
-// - RuntimeOverride：运行时 API 动态修改，优先级介于配置文件和远程之间
-//
-// 典型场景：
-// - 开发环境：SystemEnv > File（本地配置）
-// - 测试环境：SystemEnv > File
-// - 生产环境：SystemEnv > SessionEnv > File > Remote
+// Architectural Principles:
+// 1. Persistence over Transience: System-wide env vars override process-specific session vars.
+// 2. 12-Factor Compliance: Environment variables override local files for seamless container orchestration.
+// 3. Local-First Development: Local files override remote stores to simplify debugging and local testing.
+// 4. Intentionality: Explicit programmatic overrides (CodeOverride) represent the developer's 
+//    absolute intent and thus possess the highest precedence.
 var SourcePriority = map[SourceType]int{
-	SourceDefault:         0,   // 优先级最低：硬编码默认值
-	SourceRemote:          10,  // 远程配置中心（etcd/zookeeper/consul）
-	SourceRuntimeOverride: 15,  // 运行时动态修改（介于远程和配置文件之间）
-	SourceFile:            20,  // 配置文件（本地）
-	SourceSessionEnv:      30,  // 会话环境变量（临时）
-	SourceSystemEnv:       40,  // 系统环境变量（持久）
-	SourceCodeOverride:    100, // 优先级最高：代码显式设置
+	SourceDefault:         0,   // Baseline fallback.
+	SourceRemote:          10,  // Dynamic remote configuration.
+	SourceRuntimeOverride: 15,  // Mid-tier runtime updates via API.
+	SourceFile:            20,  // Static local configuration files.
+	SourceSessionEnv:      30,  // Ephemeral environment variables.
+	SourceSystemEnv:       40,  // Persistent global environment variables.
+	SourceCodeOverride:    100, // Absolute precedence for explicit code assignments.
 }
 
+// String returns the canonical string representation of the ValueType.
 func (t ValueType) String() string {
 	names := []string{
 		"String", "Int", "Float", "Bool", "Array", "Object", "Null",
@@ -61,6 +65,7 @@ func (t ValueType) String() string {
 	return "Unknown"
 }
 
+// String returns the canonical string representation of the SourceType.
 func (s SourceType) String() string {
 	names := []string{
 		"Default",

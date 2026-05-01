@@ -2,41 +2,48 @@ package analyzer
 
 import "github.com/cheryl-chun/confgen/internal/parser"
 
-// StructDef 表示一个 Go struct 的定义
+// StructDef encapsulates the metadata required to define a Go structure.
+// It serves as a blueprint for the code generation engine to render 
+// valid Go source code.
 type StructDef struct {
-	Name   string      // struct 名称 (e.g., "ServerConfig")
-	Fields []*FieldDef // 字段列表
+	Name   string      // The unique identifier for the struct (e.g., "ServerConfig").
+	Fields []*FieldDef // A collection of field definitions contained within the struct.
 }
 
-// FieldDef 表示 struct 中的一个字段
+// FieldDef represents an individual struct field, encompassing its 
+// identifier, Go data type, and multi-format serialization tags.
 type FieldDef struct {
-	Name         string    // 字段名 (PascalCase, e.g., "MaxConnections")
-	Type         string    // Go 类型 (e.g., "string", "int", "[]string", "*DatabaseConfig")
-	JSONTag      string    // JSON tag 值 (e.g., "max_connections")
-	YAMLTag      string    // YAML tag 值
-	MapStructTag string    // mapstructure tag 值
-	Comment      string    // 字段注释 (可选)
+	Name         string    // The exported field name in PascalCase (e.g., "MaxConnections").
+	Type         string    // The resolved Go type (e.g., "string", "*DatabaseConfig").
+	JSONTag      string    // The value for the 'json' struct tag used for marshalling.
+	YAMLTag      string    // The value for the 'yaml' struct tag.
+	MapStructTag string    // The value for the 'mapstructure' tag (standard for Viper integration).
+	Comment      string    // An optional inline comment for the field (for generated documentation).
 }
 
-// AnalyzeResult 表示分析结果
+// AnalyzeResult acts as a central registry for all inferred Go types.
+// It separates the entry-point structure from its nested dependencies.
 type AnalyzeResult struct {
-	RootStruct *StructDef            // 根配置结构体 (通常命名为 "Config")
-	SubStructs map[string]*StructDef // 所有嵌套的 struct 定义，key 是 struct 名称
+	RootStruct *StructDef            // The primary configuration entry point (typically "Config").
+	SubStructs map[string]*StructDef // A registry of auxiliary struct definitions, keyed by their type names.
 }
 
-// NewAnalyzeResult 创建分析结果
+// NewAnalyzeResult initializes an empty AnalyzeResult with an active 
+// map for structural dependency tracking.
 func NewAnalyzeResult() *AnalyzeResult {
 	return &AnalyzeResult{
 		SubStructs: make(map[string]*StructDef),
 	}
 }
 
-// AddStruct 添加一个 struct 定义
+// AddStruct registers a new structural definition into the internal registry.
+// This ensures that all nested components are available during the code rendering phase.
 func (r *AnalyzeResult) AddStruct(def *StructDef) {
 	r.SubStructs[def.Name] = def
 }
 
-// GoType 从 parser.ValueType 推断 Go 类型
+// GoType performs a lookup to resolve internal ValueType abstractions 
+// into concrete Go primitive type strings.
 func GoType(vt parser.ValueType) string {
 	switch vt {
 	case parser.TypeString:
@@ -48,8 +55,10 @@ func GoType(vt parser.ValueType) string {
 	case parser.TypeBool:
 		return "bool"
 	case parser.TypeNull:
-		return "interface{}" // null 值默认使用 interface{}
+		// Fallback to interface{} for null values to provide maximum flexibility.
+		return "interface{}"
 	default:
+		// Unknown or indeterminate types default to an empty interface.
 		return "interface{}"
 	}
 }

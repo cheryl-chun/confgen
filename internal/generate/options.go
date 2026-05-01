@@ -1,30 +1,37 @@
 package generate
 
-// Options 定义代码生成的配置选项
+// Options encapsulates the configuration parameters required by the generator engine.
+// It defines the behavior for source discovery, output destination, and metadata injection.
 type Options struct {
-	// InputPath 配置文件路径 (YAML/JSON)
+	// InputPath specifies the source file path (e.g., YAML or JSON) 
+	// containing the configuration schema to be parsed.
 	InputPath string
 
-	// OutputPath 生成的 Go 文件路径
+	// OutputPath defines the target filesystem destination 
+	// where the generated Go source code will be persisted.
 	OutputPath string
 
-	// PackageName 生成代码的包名
+	// PackageName specifies the Go package identifier for the generated artifacts. 
+	// If omitted, it defaults to "main".
 	PackageName string
 
-	// WatchMode 是否启用监听模式（文件变化时自动重新生成）
+	// WatchMode enables filesystem monitoring (hot-reloading) to trigger 
+	// automatic regeneration whenever the source file undergoes changes.
 	WatchMode bool
 
-	// DryRun 只打印生成的代码，不写入文件
+	// DryRun simulates the generation process by streaming the output 
+	// to the console (stdout) without modifying any files on disk.
 	DryRun bool
 
-	// StructName 生成的结构体名称，默认为 "Config"
+	// StructName defines the identifier for the generated configuration struct. 
+	// Defaults to "Config" if not explicitly provided.
 	StructName string
 
-	// Tags 要生成的标签类型，如 ["json", "yaml", "mapstructure"]
+	// Tags specifies a collection of struct tag types (e.g., "json", "yaml") 
+	// to be injected into the generated fields for serialization purposes.
 	Tags []string
 }
 
-// Validate 验证选项的有效性
 func (o *Options) Validate() error {
 	if o.InputPath == "" {
 		return ErrInputPathRequired

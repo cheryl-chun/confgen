@@ -31,7 +31,6 @@ func TestJSONParser_Parse_SimpleObject(t *testing.T) {
 		t.Errorf("Expected 3 fields, got %d", len(result.Root.Children))
 	}
 
-	// 验证字段
 	if name := result.Root.Children["name"]; name == nil {
 		t.Error("name field not found")
 	} else if name.Value != "myapp" {
