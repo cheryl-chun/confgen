@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/cheryl-chun/confgen.svg)](https://pkg.go.dev/github.com/cheryl-chun/confgen)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/cheryl-chun/confgen)![GitHub License](https://img.shields.io/github/license/cheryl-chun/confgen)![GitHub repo size](https://img.shields.io/github/repo-size/cheryl-chun/confgen)![GitHub Repo stars](https://img.shields.io/github/stars/cheryl-chun/confgen?style=social)![GitHub issues](https://img.shields.io/github/issues/cheryl-chun/confgen)
 # confg - Go Config Struct Generator
 
 A powerful code generator that creates type-safe Go configuration structs from YAML/JSON files, with runtime support for multiple config sources.
